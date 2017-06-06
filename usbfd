@@ -19,7 +19,7 @@
 
 #Some variables with default values
 TASK="none"
-DEVICE="/dev/sdb"
+DEVICE="/dev/sdd"
 DEVICEDEFAULT=1
 OFFSET=1572864
 
@@ -94,7 +94,7 @@ shift $(($OPTIND - 1))
     do
 	FLOP=$(printf %03d ${NUM%})
 	# Check the given file exists #
-	if [ -d "/media/usbfd$FLOP" ]
+	if [ -d "/media/usbfd/usbfd$FLOP" ]
 	  then
 	    echo "usbfd$FLOP is already mounted, try -u first"
 	  else 
@@ -112,13 +112,14 @@ shift $(($OPTIND - 1))
     do
 	FLOP=$(printf %03d ${NUM%})
 	# Check the given file exists #
-	if [ -d "/media/usbfd$FLOP" ]
+	if [ -d "/media/usbfd/usbfd$FLOP" ]
 	  then
 	   echo "usbfd$FLOP is already mounted, try -u first"
 	  else
-	    mkdir /media/usbfd$FLOP
+	    mkdir -p /media/usbfd
+	    mkdir /media/usbfd/usbfd$FLOP
 	    let MYOFFSET=$OFFSET*10#$NUM
-	    mount -o loop,offset=$MYOFFSET,users,rw,umask=000 $DEVICE /media/usbfd$FLOP || rmdir /media/usbfd$FLOP
+	    mount -o loop,offset=$MYOFFSET,users,rw,umask=000 $DEVICE /media/usbfd/usbfd$FLOP || rmdir /media/usbfd/usbfd$FLOP
 	fi
     done
   ;;
@@ -142,10 +143,11 @@ shift $(($OPTIND - 1))
     for NUM in "$@"
     do
       FLOP=$(printf %03d ${NUM%})
-      if [ -d "/media/usbfd$FLOP" ]
+      if [ -d "/media/usbfd/usbfd$FLOP" ]
 	then
-	  umount /media/usbfd$FLOP
-	  rmdir /media/usbfd$FLOP
+	  umount /media/usbfd/usbfd$FLOP
+	  rmdir /media/usbfd/usbfd$FLOP
+	  rmdir /media/usbfd 2>/dev/null
 	else
 	  echo "usbfd$FLOP was not mounted."
       fi
@@ -154,19 +156,20 @@ shift $(($OPTIND - 1))
 
   # unmount all the usbfd... mounts
   "UnmountAll")
-    for dir in /media/usbfd*/
+    for dir in /media/usbfd/usbfd*/
     do
 	dir=${dir%*/}
 	if [ -d $dir ]
 	then
-	  umount /media/${dir##*/}
-	  rmdir /media/${dir##*/}
+	  umount /media/usbfd/${dir##*/}
+	  rmdir /media/usbfd/${dir##*/}
 	fi
     done
+    rmdir /media/usbfd
   ;;
 
   "List")
-    for dir in /media/usbfd*/
+    for dir in /media/usbfd/usbfd*/
     do
 	dir=${dir%*/}
 	if [ -d $dir ] 
